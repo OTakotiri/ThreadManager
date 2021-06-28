@@ -9,7 +9,7 @@
 #include <Windows.h>
 
 namespace {
-	constexpr size_t JOIN_TIME_OUT = 3;
+	constexpr size_t JOIN_TIME_OUT = 3;	// タイムアウト時間.
 }
 
 CThreadManager* CThreadManager::GetInstance()
@@ -45,6 +45,10 @@ const bool CThreadManager::ReleaseThread(const std::string & Name, const bool& W
 	DWORD ThreadExitCode = -1;
 	while (GetExitCodeThread(GetInstance()->m_mThread[Name].native_handle(), &ThreadExitCode) != 0) {}
 	GetInstance()->m_ThreadCount--;
+	std::string WarningMsg = GetInstance()->GetNowTime() + ": ハッシュキーが :「 " + Name + " 」: のスレッドが通常終了しました。\n";
+	// 出力ログtxt用に退避.
+	GetInstance()->m_vReleaseLog.emplace_back(WarningMsg);
+
 	return true;
 }
 // ウィンドウ破壊手前くらいで呼ぶスレッド解放し忘れ防止関数.

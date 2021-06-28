@@ -30,9 +30,11 @@ public:
 	static void ReleaseAllThread();
 	// 使用可能最大スレッド数を返す.
 	// 最終解放時にスレッドを一つ使うため、1つ引いた数を返す.
-	inline static const unsigned int GetHardWereMaxThread() { return std::thread::hardware_concurrency() - 1; }
+	inline static const unsigned int GetHardWereMaxThread()						{ return std::thread::hardware_concurrency() - 1; }
 	// 稼働中のスレッド数を返す.
-	inline static const bool IsMoveThread(const std::string& Name) { return GetInstance()->m_mThread[Name].joinable(); }
+	inline static const bool IsMoveThread(const std::string& Name)				{ return GetInstance()->m_mThread[Name].joinable(); }
+	// 指定したスレッドのIDを返す.
+	inline static const std::thread::id GetThreadID(const std::string& Name)	{ return GetInstance()->m_mThread[Name].get_id(); }
 private:
 	// joinでの無限ループ検知.
 	// join処理が規定時間を超えた場合、プログラムを落とす.
