@@ -48,7 +48,8 @@ const bool CThreadManager::ReleaseThread(const std::string & Name, const bool& W
 	std::string WarningMsg = GetInstance()->GetNowTime() + ": ハッシュキーが :「 " + Name + " 」: のスレッドが通常終了しました。\n";
 	// 出力ログtxt用に退避.
 	GetInstance()->m_vReleaseLog.emplace_back(WarningMsg);
-
+	// このハッシュキーのスレッドをmapから削除.
+	GetInstance()->m_mThread.erase(Name);
 	return true;
 }
 // ウィンドウ破壊手前くらいで呼ぶスレッド解放し忘れ防止関数.
@@ -65,6 +66,8 @@ void CThreadManager::ReleaseAllThread()
 			EndJoin = true;
 			TimeOut.join();
 			GetInstance()->m_ThreadCount--;
+			// このハッシュキーのスレッドをmapから削除.
+			GetInstance()->m_mThread.erase(itr->first);
 		}
 	}
 
