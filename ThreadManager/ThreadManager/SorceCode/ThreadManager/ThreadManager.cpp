@@ -55,22 +55,31 @@ const bool CThreadManager::ReleaseThread(const std::string & Name, const bool& W
 // ウィンドウ破壊手前くらいで呼ぶスレッド解放し忘れ防止関数.
 void CThreadManager::ReleaseAllThread()
 {
-	if (GetInstance()->m_ThreadCount == 0) return;
-	for (auto itr = GetInstance()->m_mThread.begin(); itr != GetInstance()->m_mThread.end(); ++itr)
-	{
-		if (GetInstance()->m_mThread[itr->first].joinable() == true) {
-			bool EndJoin = false;
-			// タイムアウト計測用スレッド起動.
-			std::thread TimeOut = std::thread([&]() {GetInstance()->CheckInfLoopThread(itr->first, EndJoin); });
-			GetInstance()->m_mThread[itr->first].join();
-			EndJoin = true;
-			TimeOut.join();
-			GetInstance()->m_ThreadCount--;
-			// このハッシュキーのスレッドをmapから削除.
-			GetInstance()->m_mThread.erase(itr->first);
+	do {
+		if (GetInstance()->m_ThreadCount == 0)		break;
+		if (GetInstance()->m_mThread.size() == 0)	break;
+		size_t Size = GetInstance()->m_mThread.size();
+		auto itr = GetInstance()->m_mThread.begin();
+		while (Size != 0)
+		{
+			if (GetInstance()->m_mThread[itr->first].joinable() == true) {
+				bool EndJoin = false;
+				// タイムアウト計測用スレッド起動.
+				std::thread TimeOut = std::thread([&]() {GetInstance()->CheckInfLoopThread(itr->first, EndJoin); });
+				GetInstance()->m_mThread[itr->first].join();
+				EndJoin = true;
+				TimeOut.join();
+				GetInstance()->m_ThreadCount--;
+				Size--;
+				if (Size == 0) break;
+				itr++;
+			}
+			else {
+				Size--;
+			}
 		}
-	}
-
+	} while (0);
+	GetInstance()->m_mThread.clear();
 	GetInstance()->PutLog();
 }
 
@@ -90,7 +99,7 @@ void CThreadManager::CheckInfLoopThread(const std::string & ItrKey, bool& End)
 			m_vReleaseLog.emplace_back(WarningMsg);
 			OutputDebugStringA(WarningMsg.c_str());
 			GetInstance()->PutLog();
-			_ASSERT_EXPR(false, " Failed Thread Release ");
+			_ASSERT_EXPR(false, L" Failed Thread Release ");
 			break;
 		}
 	}
